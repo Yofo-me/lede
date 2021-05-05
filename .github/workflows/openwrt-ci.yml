@@ -9,7 +9,10 @@ name: OpenWrt-CI
 
 on:
   schedule:
-    - cron: 0 20 * * *
+    - cron: 0 14 * * *
+  push:
+    branches:
+      - master
   release:
     types: [published]
 
@@ -46,7 +49,13 @@ jobs:
 
       - name: Update feeds
         run: |
-          sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
+          sed -i 's/^#\(.*helloworld\)/\1/' feeds.conf.default
+          sed -i '$a src-git lienol https://github.com/Lienol/openwrt-package' feeds.conf.default
+          sed -i '$a src-git openwrtsoft https://github.com/xiaorouji/openwrt-passwall.git' feeds.conf.default
+          sed -i 's/192.168.1/172.16.0/' package/base-files/files/bin/config_generate
+          sed -i 's/255.255.255.0/255.255.240.0/' package/base-files/files/bin/config_generate
+          sed -i '1s#root.*#root:$6$C/A4mf8CH3JkeFkq$HlWqM3BBTZ.7D6zZHPYej.TNfUF2qK55m2LXEgFRboKsHRdt6fszV7D/AvH/nb2zIEUz0zjXQ9Bj0odrOZnJx.:18745:0:99999:7:::#' package/base-files/files/etc/shadow
+          sed -i '30,40s/.*//' package/lean/luci-theme-argon/luasrc/view/themes/argon/footer.htm
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
